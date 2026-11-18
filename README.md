@@ -138,6 +138,8 @@ Open `http://localhost:3000` on your laptop. To test on another device on the sa
 
 Data is stored in `pawtrol.sqlite` in this repository directory and is ignored by Git. `PORT`, `HOST`, and `PAWTROL_DB` can be set with environment variables. Back up the SQLite file if the data matters. A cloud deployment needs persistent storage; a plain Vercel function filesystem will not provide that.
 
+Optional live AI review: set `OPENAI_API_KEY` on the server, then restart it. The scan form will show an unchecked opt-in box. If selected, Pawtrol runs the local matching tool first and sends the new photo plus up to three shortlisted profile photos to OpenAI (`gpt-4o-mini` by default) for a visual recommendation. `OPENAI_MODEL` overrides the model. The key never goes to the browser. If the AI request fails, the app still returns local candidates. Do not commit your key or add it to a public `.env` file.
+
 ### Two-minute demo
 
 1. On your phone, photograph a real dog, cat, or cow, enter place and time, then scan. With no existing profile, create one and choose a nickname.
@@ -151,6 +153,7 @@ Data is stored in `pawtrol.sqlite` in this repository directory and is ignored b
 |---|---|
 | `GET /api/animals` | List known profiles and latest logged care |
 | `POST /api/match` | Rank candidates from `species`, 64-bit `hash`, `colors`, and optional location/GPS |
+| `POST /api/agent/match` | With server key and explicit UI opt-in, use local ranking then OpenAI vision review |
 | `POST /api/animals` | Create a profile and first sighting after confirmation |
 | `GET /api/animals/:id` | Read a profile and event history |
 | `POST /api/animals/:id/events` | Add a photo-backed sighting or feeding log |
@@ -159,4 +162,4 @@ The browser app calls these same endpoints. The matching response includes `trac
 
 ### Current limits
 
-This prototype has no accounts, moderation, or abuse controls. Anyone with access to the server can view and add records. The hash-based matcher is strongest for very similar photos; it can rank lookalikes together and miss the same animal in a new pose. A score is a ranking aid, not a probability. Camera/GPS behavior depends on browser security and permissions. Feeding logs describe only entries made in Pawtrol, never the animal’s full feeding history.
+This prototype has no accounts, moderation, or abuse controls. Anyone with access to the server can view and add records. The hash-based matcher is strongest for very similar photos; it can rank lookalikes together and miss the same animal in a new pose. AI vision can also confuse lookalikes. A score is a ranking aid, not a probability. Camera/GPS behavior depends on browser security and permissions. Feeding logs describe only entries made in Pawtrol, never the animal’s full feeding history.
