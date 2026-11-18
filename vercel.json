@@ -2,6 +2,16 @@
   "version": 2,
   "buildCommand": "",
   "outputDirectory": "public",
-  "functions": {"api/index.js": {"maxDuration": 30}},
-  "rewrites": [{"source": "/api/:path*", "destination": "/api"}]
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api"
+    }
+  ],
+  "framework": null
 }
