@@ -163,3 +163,13 @@ The browser app calls these same endpoints. The matching response includes `trac
 ### Current limits
 
 This prototype has no accounts, moderation, or abuse controls. Anyone with access to the server can view and add records. The hash-based matcher is strongest for very similar photos; it can rank lookalikes together and miss the same animal in a new pose. AI vision can also confuse lookalikes. A score is a ranking aid, not a probability. Camera/GPS behavior depends on browser security and permissions. Feeding logs describe only entries made in Pawtrol, never the animal’s full feeding history.
+
+### Field Club update
+
+The League tab ranks browser-based explorer nicknames using real saved contributions. Discovery earns 50 XP, a sighting 10 XP, and feeding 20 XP. Each animal/activity/day combination counts once per explorer. Browser identity is a local random token hashed on the server, not a verified account. Nicknames are public; tokens are not returned by leaderboard APIs. This is a friendly demo, not an abuse-resistant rewards system.
+
+Enable photo analysis once to have the app recognize visible species and food using OpenAI. Consent is remembered on that browser and can be turned off. Food suggestions fill an editable review field; they do not prove feeding or ingredient safety. Configure OPENAI_API_KEY only on the server. The hosted app exposes POST /api/recognize.
+
+Location search uses Photon/OpenStreetMap. GPS reverse lookup fills a readable address; place search offers suggestions after three characters. If lookup fails, enter the place manually. Queries and GPS used for lookup are sent to the geocoder.
+
+Story cards are generated on-device as 1080×1920 PNGs. Use the Share button on supported phones, or download and upload the image to Instagram Stories. Direct Instagram publishing is not implemented. Personal stats use leaderboard contributions; unsigned visitors can share community totals.
