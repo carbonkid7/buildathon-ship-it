@@ -47,6 +47,7 @@ const number = value => value === null || value === undefined || value === '' ? 
 const validCoords = (lat, lng) => (lat === null && lng === null) || (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180);
 const validTime = value => typeof value === 'string' && !Number.isNaN(Date.parse(value)) && new Date(value).getTime() <= Date.now() + 60_000;
 const speciesSet = new Set(['dog', 'cat', 'cow']);
+const visionUsage = new Map();
 const distanceKm = (a, b, c, d) => {
   if ([a,b,c,d].some(x => x === null)) return null;
   const rad = Math.PI / 180, lat = (c-a)*rad, lng = (d-b)*rad;
@@ -120,6 +121,10 @@ const server = http.createServer(async (req,res) => {
     if (url.pathname === '/api/agent/match' && req.method === 'POST') {
       const b=await readBody(req);
       if (!imageOkay(b.image)) return json(res,400,{error:'A valid scan photo is required.'});
+      const client=req.socket.remoteAddress||'unknown', now=Date.now();
+      const recent=(visionUsage.get(client)||[]).filter(time=>now-time<15*60_000);
+      if (recent.length>=10) return json(res,429,{error:'AI review limit reached. Use local matching or try again later.'});
+      recent.push(now); visionUsage.set(client,recent);
       const ranked=rankCandidates(b);
       const vision=await visionReview(b,ranked.candidates);
       ranked.trace.splice(3,0,{tool:'vision_review',result:`OpenAI compared ${Math.min(3,ranked.candidates.length)} shortlisted photos after user opt-in`});
