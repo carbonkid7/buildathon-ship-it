@@ -118,11 +118,45 @@ See [RULES.md](RULES.md) for the full list.
 
 ## Your project
 
-_Replace this section with your project README:_
-- **Team:**
-- **Track:**
-- **Problem:** who faces it and why it happens
-- **What we built:** the core workflow
-- **The hardest part:** how we solved it
-- **How to run it:**
-- **Demo / screenshots:**
+### Pawtrol · Every stray has a story
+
+- **Team:** SHIP IT — Venu (`carbonkid7`) and Neelava (no GitHub account)
+- **Track:** AI Agents
+- **Problem:** People in the same neighborhood repeatedly see and help the same stray dogs, cats, and cows, but they have no shared record of which animal they saw or what care somebody actually logged. A handwritten or chat-based update is hard to connect to the correct animal, and a claim that an animal was “last fed” can be dangerously misleading when the log is incomplete.
+- **What we built:** A mobile-first installable web app for photo scanning, candidate matching, human-confirmed profiles, sightings, photo-backed feeding logs, a community activity feed, optional GPS and OpenStreetMap views. All records are stored in a local SQLite database through a real Node API.
+- **Hardest part:** Matching a new photo to a shared profile without pretending to have certain animal identification. The browser extracts a 64-bit image difference hash and average color; the API checks only profiles of the same species, ranks by visual features and location, and returns the tool trace and evidence. The user confirms the match or creates a new profile. This is a usable candidate search, not a reliable animal recognition model.
+
+### Run it
+
+Requires Node.js 22 or newer. There are no npm dependencies or API keys.
+
+```bash
+npm start
+```
+
+Open `http://localhost:3000` on your laptop. To test on another device on the same network, run `HOST=0.0.0.0 npm start` and open `http://<laptop-LAN-IP>:3000`. Browser camera and GPS permission may require HTTPS; photo selection and manual location still work over local HTTP.
+
+Data is stored in `pawtrol.sqlite` in this repository directory and is ignored by Git. `PORT`, `HOST`, and `PAWTROL_DB` can be set with environment variables. Back up the SQLite file if the data matters. A cloud deployment needs persistent storage; a plain Vercel function filesystem will not provide that.
+
+### Two-minute demo
+
+1. On your phone, photograph a real dog, cat, or cow, enter place and time, then scan. With no existing profile, create one and choose a nickname.
+2. Scan the same animal again. Show the matching tool trace, scored candidate, and confirmation step. Take a second photo if possible; if the pose differs, explain that the candidate search may miss it.
+3. Open the animal’s profile, add a **feeding log with a photo**, and show the shared activity feed. Point out the wording **“Last feeding logged on Pawtrol”**.
+4. For the AI Agents track, have Codex or another coding agent call `POST /api/match` using the scan evidence and explain the returned `trace` and candidate signals. The agent must use this live API and must leave identity confirmation to the user. A direct prompt: “Call Pawtrol’s localhost `/api/animals` and `/api/match` tools. Report the evidence for the top candidate and the remaining uncertainty. Do not claim identity or create a log without my confirmation.”
+
+### API for agent tools
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/animals` | List known profiles and latest logged care |
+| `POST /api/match` | Rank candidates from `species`, 64-bit `hash`, `colors`, and optional location/GPS |
+| `POST /api/animals` | Create a profile and first sighting after confirmation |
+| `GET /api/animals/:id` | Read a profile and event history |
+| `POST /api/animals/:id/events` | Add a photo-backed sighting or feeding log |
+
+The browser app calls these same endpoints. The matching response includes `trace` and `signals` so an agent can cite observations instead of inventing them. All write operations need explicit user confirmation in an agent workflow.
+
+### Current limits
+
+This prototype has no accounts, moderation, or abuse controls. Anyone with access to the server can view and add records. The hash-based matcher is strongest for very similar photos; it can rank lookalikes together and miss the same animal in a new pose. A score is a ranking aid, not a probability. Camera/GPS behavior depends on browser security and permissions. Feeding logs describe only entries made in Pawtrol, never the animal’s full feeding history.

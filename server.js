@@ -4,7 +4,7 @@ const path = require('node:path');
 const { DatabaseSync } = require('node:sqlite');
 
 const root = __dirname;
-const db = new DatabaseSync(path.join(root, 'pawtrol.sqlite'));
+const db = new DatabaseSync(process.env.PAWTROL_DB || path.join(root, 'pawtrol.sqlite'));
 db.exec(`CREATE TABLE IF NOT EXISTS animals (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nickname TEXT NOT NULL,
@@ -88,10 +88,15 @@ const server = http.createServer(async (req,res) => {
         const hash=hamming(b.hash,a.hash), color=colorDistance(JSON.stringify(b.colors),a.colors);
         const km=distanceKm(lat,lng,a.latitude,a.longitude);
         const samePlace=text(b.location).toLowerCase()===a.location.toLowerCase();
-        const score=Math.round(Math.max(0,100 - hash*1.5 - color*22 - (km===null ? 0 : Math.min(km,20)*1.2) + (samePlace ? 5 : 0)));
+        const score=Math.round(Math.min(100,Math.max(0,100 - hash*1.5 - color*22 - (km===null ? 0 : Math.min(km,20)*1.2) + (samePlace ? 5 : 0))));
         return {animal:a,score,signals:{hashDifference:hash,colorDifference:Math.round(color*100),distanceKm:km===null?null:Math.round(km*10)/10,samePlace},warning:'Photo similarity is only a lead. Confirm markings and location before adding to this profile.'};
       }).sort((a,b)=>b.score-a.score).slice(0,5);
-      return json(res,200,{candidates});
+      return json(res,200,{candidates,trace:[
+        {tool:'species_filter',result:`${animalRows().filter(a=>a.species===b.species).length} ${b.species} profiles considered`},
+        {tool:'image_fingerprint',result:'64-bit difference hash and average color compared'},
+        {tool:'location_check',result:lat===null?'GPS unavailable; place name used where identical':'GPS distance included in ranking'},
+        {tool:'human_confirmation',result:'Required before adding to an existing profile'}
+      ]});
     }
     if (url.pathname === '/api/animals' && req.method === 'POST') {
       const b=await readBody(req), lat=number(b.latitude), lng=number(b.longitude);
@@ -123,4 +128,5 @@ const server = http.createServer(async (req,res) => {
 });
 
 const port=Number(process.env.PORT || 3000);
-server.listen(port,()=>console.log(`Pawtrol ready at http://localhost:${port}`));
+const host=process.env.HOST || '127.0.0.1';
+server.listen(port,host,()=>console.log(`Pawtrol ready at http://${host}:${port}`));
