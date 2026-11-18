@@ -24,3 +24,8 @@ Thumbs.db
 .idea/
 .vscode/*
 !.vscode/extensions.json
+# Local Pawtrol data and machine-specific files
+pawtrol.sqlite
+pawtrol.sqlite-*
+.env
+node_modules/
